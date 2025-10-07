@@ -1,29 +1,30 @@
 #!/bin/bash
-# eggd_app
+# eggd_calc_downsample_fraction 
 
-# Exit at any point if there is any error and output each line as it is executed (for debugging)
-# -e = exit on error; -x = output each line that is executed to log; -o pipefail = throw an error if there's an error in pipeline
 set -e -x -o pipefail
 
 main() {
-    # Install packages if required
+    dx download "$flagstat"
 
-    ## Download input files (individual or an array)
-    # either all at once, in which case they are placed into separate folders
-    dx-download-all-inputs --parallel
-    # Each input is placed under its own subfolder "~/in/name_of_input_field/", named after the input field.
-    # can be accessed by using $input_file_path variable or
-    # $input_file_name equivalent to basename command,
-    # $input_file_prefix filename without the extension
-    #  also for array of files input, individual files are downloaded into subfolders
-    # /in/input_file_array/0/file0 and /in/input_file_array/1/file1 and so on
-    # in which case they have to be moved manually into the same folder, if needed
-    mkdir input_files
-    find ~/in/input_file_array -type f -name "*" -print0 | xargs -0 -I {} mv {} ~/input_files
+    FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
+    if [[ $FILE_TEST_OUTPUT == "JSON data" ]]; then
+        READ_COUNT=$(jq -r '."QC-passed reads" | ."primary"' "$flagstat_path")
+    elif [[ $FILE_TEST_OUTPUT == "ASCII text" ]]; then
+        READ_COUNT=$(grep "primary$" "$flagstat_path" | cut -f1)
+    fi
 
-    # or files can be downloaded one by one, specifying a name for them within the workstation
-    dx download "$input_file" -o input_file_name
+    TARGET_FRACTION=$(bc -l <<< "scale=3; $TARGET_READ_COUNT / $READ_COUNT")
+    if (( $(echo "$TARGET_FRACTION < 1" | bc -l) )); then
+        # if the result is less than 1.0, bc won't add a leading zero
+        # so we add it ourselves
+        TARGET_FRACTION="0$TARGET_FRACTION"
+    elif (( $(echo "$TARGET_FRACTION > 1" | bc -l) )); then
+        echo "Something's gone wrong"
+        exit 1
+    fi
+    echo "$TARGET_FRACTION" > target_fraction.txt
 
-    
-
+    OUTPUT_FILE_ID=$(dx upload --brief target_fraction.txt)
+    dx-jobutil-add-output "target_fraction_file" "$OUTPUT_FILE_ID"
+    dx-jobutil-add-output "target_fraction_float" "$TARGET_FRACTION"
 }
