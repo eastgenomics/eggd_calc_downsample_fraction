@@ -4,7 +4,7 @@
 set -e -x -o pipefail
 
 main() {
-    dx download "$flagstat"
+    dx-download-all-inputs
 
     FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
     if [[ $FILE_TEST_OUTPUT == "JSON data" ]]; then
