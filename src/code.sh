@@ -13,7 +13,7 @@ main() {
         READ_COUNT=$(grep "primary$" "$flagstat_path" | cut -f1)
     fi
 
-    TARGET_FRACTION=$(bc -l <<< "scale=3; $TARGET_READ_COUNT / $READ_COUNT")
+    TARGET_FRACTION=$(bc -l <<< "scale=3; $target_read_count / $READ_COUNT")
     if (( $(echo "$TARGET_FRACTION < 1" | bc -l) )); then
         # if the result is less than 1.0, bc won't add a leading zero
         # so we add it ourselves
