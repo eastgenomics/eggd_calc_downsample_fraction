@@ -22,9 +22,8 @@ main() {
     fi
 
     TARGET_FRACTION=$(bc -l <<< "scale=3; $target_read_count / $READ_COUNT")
-    if (( $(echo "$TARGET_FRACTION < 1" | bc -l) )); then
-        # if the result is less than 1.0, bc won't add a leading zero
-        # so we add it ourselves
+    # bc may emit (e.g.) ".123" for values < 1; add a leading zero only in that case
+    if [[ "$TARGET_FRACTION" == .* ]]; then
         TARGET_FRACTION="0$TARGET_FRACTION"
     elif (( $(echo "$TARGET_FRACTION > 1" | bc -l) )); then
         echo "WARNING: Requested read count is greater than maximum possible for this file. Requested: $target_read_count; N reads in BAM: $READ_COUNT. Setting fraction to 1.0"
