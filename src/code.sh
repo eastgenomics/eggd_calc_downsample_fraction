@@ -10,7 +10,7 @@ main() {
     if [[ $FILE_TEST_OUTPUT == "JSON data" ]]; then
         READ_COUNT=$(jq -r '."QC-passed reads" | ."primary"' "$flagstat_path")
     elif [[ $FILE_TEST_OUTPUT == "ASCII text" ]]; then
-        READ_COUNT=$(grep "primary$" "$flagstat_path" | cut -f1)
+        READ_COUNT=$(grep "primary$" "$flagstat_path" | awk '{print $1}')
     fi
 
     TARGET_FRACTION=$(bc -l <<< "scale=3; $target_read_count / $READ_COUNT")
