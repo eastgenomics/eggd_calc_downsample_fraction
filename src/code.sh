@@ -7,9 +7,9 @@ main() {
     dx-download-all-inputs
 
     FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
-    if [[ $FILE_TEST_OUTPUT == "JSON data" ]]; then
+    if [[ $FILE_TEST_OUTPUT == "JSON\ data*" ]]; then
         READ_COUNT=$(jq -r '."QC-passed reads" | ."primary"' "$flagstat_path")
-    elif [[ $FILE_TEST_OUTPUT == "ASCII text" ]]; then
+    elif [[ $FILE_TEST_OUTPUT == "ASCII text*" ]]; then
         READ_COUNT=$(grep "primary$" "$flagstat_path" | awk '{print $1}')
     fi
 
@@ -26,5 +26,5 @@ main() {
 
     OUTPUT_FILE_ID=$(dx upload --brief target_fraction.txt)
     dx-jobutil-add-output "target_fraction_file" "$OUTPUT_FILE_ID"
-    dx-jobutil-add-output "target_fraction_float" "$TARGET_FRACTION"
+    dx-jobutil-add-output "target_fraction_float" "$TARGET_FRACTION" --class float
 }
