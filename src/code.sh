@@ -19,8 +19,8 @@ main() {
         # so we add it ourselves
         TARGET_FRACTION="0$TARGET_FRACTION"
     elif (( $(echo "$TARGET_FRACTION > 1" | bc -l) )); then
-        echo "Something's gone wrong"
-        exit 1
+        echo "WARNING: Requested read count is greater than maximum possible for this file. Requested: $target_read_count; N reads in BAM: $READ_COUNT. Setting fraction to 1.0"
+        TARGET_FRACTION="1.0"
     fi
     echo "$TARGET_FRACTION" > target_fraction.txt
 
