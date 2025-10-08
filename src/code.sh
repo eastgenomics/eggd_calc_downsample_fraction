@@ -30,6 +30,6 @@ main() {
     echo "$TARGET_FRACTION" > target_fraction.txt
 
     OUTPUT_FILE_ID=$(dx upload --brief target_fraction.txt)
-    dx-jobutil-add-output "target_fraction_file" "$OUTPUT_FILE_ID"
+    dx-jobutil-add-output "target_fraction_file" "$OUTPUT_FILE_ID" --class file
     dx-jobutil-add-output "target_fraction_float" "$TARGET_FRACTION" --class float
 }
