@@ -1,6 +1,6 @@
 {
-  "name": "eggd_<tool_name>",
-  "title": "eggd_<tool_name>",
+  "name": "eggd_calc_downsample_fraction",
+  "title": "eggd_calc_downsample_fraction",
   "summary": "description",
   "dxapi": "1.0.0",
   "version": "1.0.0",
@@ -9,63 +9,33 @@
     },
   "inputSpec": [
     {
-      "name": "input_file",
+      "name": "flagstat",
       "class": "file",
-      "optional": true,
-      "label": "Name of input file",
-      "patterns": [
-        "*.tsv", "*.vcf", "*.bed", "*.xlsx"
-      ],
-      "help": "Description"
-    },
-    {
-      "name": "input_file_array",
-      "class": "array:file",
       "optional": false,
-      "label": "Name of input file array",
-      "suggestions": [
-        {
-        "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-        "path": "/folder1/folder2/"
-        }
-      ],
-      "help": "Description"
+      "label": "Flagstat",
+      "help": "samtools flagstat statistics file"
     },
     {
-      "name": "input_boolean",
-      "class": "boolean",
-      "optional": true,
-      "default": true,
-      "label": "Name of field",
-      "help": "Description"
-    },
-    {
-      "name": "input_string",
-      "class": "string",
-      "label": "Input string field name",
-      "optional": true,
-      "default": "default string input",
-      "help": "Description"
+      "name": "target_read_count",
+      "class": "int",
+      "optional":false,
+      "label": "Target Read Count",
+      "help": "Target read count"
     }
   ],
   "outputSpec": [
     {
-      "name": "output_file",
-      "class": "file",
-      "label": "output file",
-      "patterns": [
-        "*.tsv", "*.vcf", "*.bed", "*.xlsx"
-      ],
-      "help": "Description"
+      "name": "target_fraction_float",
+      "class": "float",
+      "label": "Target fraction (float)",
+      "help": "Fraction required to downsample the BAM to the desired read count"
     },
     {
-      "name": "output_files_array",
-      "class": "array:file",
-      "label": "output files",
-      "optional": true,
-      "help": "Description"
+      "name": "target_fraction_file",
+      "class": "file",
+      "label": "Target fraction (file)",
+      "help": "File containing fraction specified in target_fraction_float"
     }
-
   ],
   "runSpec": {
     "timeoutPolicy": {
@@ -74,30 +44,10 @@
       }
     },
     "distribution": "Ubuntu",
-    "release": "20.04",
+    "release": "24.04",
     "version": "0",
     "interpreter": "bash",
-    "file": "src/code.sh",
-    "assetDepends": [
-      {
-        "name": "bedtools",
-        "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-        "folder": "/app_assets/bedtools/bedtools_v2.30.0",
-        "version": "2.30.0"
-      },
-      {
-        "name": "htslib",
-        "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-        "folder": "/app_assets/htslib/htslib_v1.15.0",
-        "version": "1.15.0"
-      },
-      {
-        "name": "python_packages",
-        "project": "project-Fkb6Gkj433GVVvj73J7x8KbV",
-        "folder": "/app_assets/python_packages/python_packages_v1.1.0",
-        "version": "1.1.0"
-      }
-    ]
+    "file": "src/code.sh"
   },
   "developers":[
     "org-emee_1"

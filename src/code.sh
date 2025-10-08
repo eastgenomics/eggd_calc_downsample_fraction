@@ -1,29 +1,43 @@
 #!/bin/bash
-# eggd_app
+# eggd_calc_downsample_fraction 
 
-# Exit at any point if there is any error and output each line as it is executed (for debugging)
-# -e = exit on error; -x = output each line that is executed to log; -o pipefail = throw an error if there's an error in pipeline
 set -e -x -o pipefail
 
 main() {
-    # Install packages if required
+    dx-download-all-inputs
 
-    ## Download input files (individual or an array)
-    # either all at once, in which case they are placed into separate folders
-    dx-download-all-inputs --parallel
-    # Each input is placed under its own subfolder "~/in/name_of_input_field/", named after the input field.
-    # can be accessed by using $input_file_path variable or
-    # $input_file_name equivalent to basename command,
-    # $input_file_prefix filename without the extension
-    #  also for array of files input, individual files are downloaded into subfolders
-    # /in/input_file_array/0/file0 and /in/input_file_array/1/file1 and so on
-    # in which case they have to be moved manually into the same folder, if needed
-    mkdir input_files
-    find ~/in/input_file_array -type f -name "*" -print0 | xargs -0 -I {} mv {} ~/input_files
+    FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
+    if [[ $FILE_TEST_OUTPUT == "JSON data"* ]]; then
+        READ_COUNT=$(jq -r '."QC-passed reads" | ."total"' "$flagstat_path")
+    elif [[ $FILE_TEST_OUTPUT == "ASCII text"* ]]; then
+        READ_COUNT=$(grep "total" "$flagstat_path" | awk '{print $1}')
+    else
+        echo "Unsupported flagstat format: ${FILE_TEST_OUTPUT}" >&2
+        exit 1
+    fi
 
-    # or files can be downloaded one by one, specifying a name for them within the workstation
-    dx download "$input_file" -o input_file_name
+    if [ -z "$READ_COUNT" ]; then
+        echo "ERROR: Read count could not be parsed from flagstat file input. Please check the validity of $flagstat_name"
+        exit 1
+    elif ! [[ "$READ_COUNT" =~ ^[0-9]+$ ]]; then
+        echo "ERROR: Read count value parsed from flagstat is not numeric: $READ_COUNT" >&2
+        exit 1
+    elif [[ "$READ_COUNT" -eq 0 ]]; then
+        echo "ERROR: samtools flagstat reports zero reads in input BAM. Cannot calculate downsampling fraction." >&2
+        exit 1
+    fi
 
-    
+    TARGET_FRACTION=$(bc -l <<< "scale=3; $target_read_count / $READ_COUNT")
+    # bc may emit (e.g.) ".123" for values < 1; add a leading zero only in that case
+    if [[ "$TARGET_FRACTION" == .* ]]; then
+        TARGET_FRACTION="0$TARGET_FRACTION"
+    elif (( $(echo "$TARGET_FRACTION > 1" | bc -l) )); then
+        echo "WARNING: Requested read count is greater than maximum possible for this file. Requested: $target_read_count; N reads in BAM: $READ_COUNT. Setting fraction to 1.0"
+        TARGET_FRACTION="1.0"
+    fi
+    echo "$TARGET_FRACTION" > target_fraction.txt
 
+    OUTPUT_FILE_ID=$(dx upload --brief target_fraction.txt)
+    dx-jobutil-add-output "target_fraction_file" "$OUTPUT_FILE_ID" --class="file"
+    dx-jobutil-add-output "target_fraction_float" "$TARGET_FRACTION" --class="float"
 }
