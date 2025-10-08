@@ -7,10 +7,13 @@ main() {
     dx-download-all-inputs
 
     FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
-    if [[ $FILE_TEST_OUTPUT == "JSON\ data*" ]]; then
+    if [[ $FILE_TEST_OUTPUT == "JSON data"* ]]; then
         READ_COUNT=$(jq -r '."QC-passed reads" | ."primary"' "$flagstat_path")
-    elif [[ $FILE_TEST_OUTPUT == "ASCII text*" ]]; then
+    elif [[ $FILE_TEST_OUTPUT == "ASCII text"* ]]; then
         READ_COUNT=$(grep "primary$" "$flagstat_path" | awk '{print $1}')
+    else
+        echo "Unsupported flagstat format: ${FILE_TEST_OUTPUT}" >&2
+        exit 1
     fi
 
     if [[ "$READ_COUNT" -eq 0 ]]; then
