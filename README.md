@@ -1,5 +1,5 @@
 <!-- dx-header -->
-# eggd_calculate_downsample_fraction (DNAnexus Platform App)
+# eggd_calc_downsample_fraction (DNAnexus Platform App)
 
 <!-- Insert a description of your app here -->
 ## What does this app do?
