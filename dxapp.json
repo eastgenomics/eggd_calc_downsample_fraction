@@ -13,9 +13,6 @@
       "class": "file",
       "optional": false,
       "label": "Flagstat",
-      "patterns": [
-        "*.tsv", "*.json"
-      ],
       "help": "samtools flagstat statistics file"
     },
     {
