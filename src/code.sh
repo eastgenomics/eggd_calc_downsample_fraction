@@ -16,7 +16,10 @@ main() {
         exit 1
     fi
 
-    if [[ "$READ_COUNT" -eq 0 ]]; then
+    if [ -z "$READ_COUNT" ]; then
+        echo "ERROR: Read count could not be parsed from flagstat file input. Please check the validity of $flagstat_name"
+        exit 1
+    elif [[ "$READ_COUNT" -eq 0 ]]; then
         echo "ERROR: samtools flagstat reports zero primary reads in input BAM. Cannot calculate downsampling fraction." >&2
         exit 1
     fi
