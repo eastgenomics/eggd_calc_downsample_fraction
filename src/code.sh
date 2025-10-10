@@ -8,7 +8,7 @@ main() {
 
     # Tests for file type
     FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
-    if [[ $FILE_TEST_OUTPUT == "JSON data"* ]]; then
+    if [[ $FILE_TEST_OUTPUT == *"JSON"* ]]; then
         READ_COUNT=$(jq -r '."QC-passed reads" | ."total"' "$flagstat_path")
     elif [[ $FILE_TEST_OUTPUT == "ASCII text"* ]]; then
         READ_COUNT=$(grep "total" "$flagstat_path" | awk '{print $1}')
@@ -29,7 +29,7 @@ main() {
         exit 1
     fi
 
-    # Only do calculation if target < actual
+    # Only do fraction calculation if target < actual
     if (( target_read_count > READ_COUNT )); then
         echo "WARNING: Requested read count is greater than maximum possible for this file. Requested: $target_read_count; N reads in BAM: $READ_COUNT. Setting fraction to 1.0"
         TARGET_FRACTION="1.0"
