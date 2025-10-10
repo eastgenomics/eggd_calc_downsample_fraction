@@ -6,6 +6,7 @@ set -e -x -o pipefail
 main() {
     dx-download-all-inputs
 
+    # Tests for file type
     FILE_TEST_OUTPUT=$(file --brief "$flagstat_path")
     if [[ $FILE_TEST_OUTPUT == "JSON data"* ]]; then
         READ_COUNT=$(jq -r '."QC-passed reads" | ."total"' "$flagstat_path")
@@ -16,6 +17,7 @@ main() {
         exit 1
     fi
 
+    # Tests for file integrity
     if [ -z "$READ_COUNT" ]; then
         echo "ERROR: Read count could not be parsed from flagstat file input. Please check the validity of $flagstat_name"
         exit 1
@@ -27,13 +29,15 @@ main() {
         exit 1
     fi
 
-    TARGET_FRACTION=$(bc -l <<< "scale=3; $target_read_count / $READ_COUNT")
-    # bc may emit (e.g.) ".123" for values < 1; add a leading zero only in that case
-    if [[ "$TARGET_FRACTION" == .* ]]; then
-        TARGET_FRACTION="0$TARGET_FRACTION"
-    elif (( $(echo "$TARGET_FRACTION > 1" | bc -l) )); then
+    # Only do calculation if target < actual
+    if (( target_read_count > READ_COUNT )); then
         echo "WARNING: Requested read count is greater than maximum possible for this file. Requested: $target_read_count; N reads in BAM: $READ_COUNT. Setting fraction to 1.0"
         TARGET_FRACTION="1.0"
+    elif (( target_read_count == READ_COUNT )); then
+        echo "INFO: Requested read count is equal to number of reads found in file."
+        TARGET_FRACTION="1.0"
+    else
+        TARGET_FRACTION=$(bc -l <<< "scale=3; $target_read_count / $READ_COUNT")
     fi
     echo "$TARGET_FRACTION" > target_fraction.txt
 
